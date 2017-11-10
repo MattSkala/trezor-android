@@ -17,7 +17,7 @@ allprojects {
 
     project.ext {
         support_version = "25.3.1"
-        buildToolsVersion = "25.0.2"
+        buildToolsVersion = "26.0.2"
         sdk = 25
         minsdk = 15
     }
