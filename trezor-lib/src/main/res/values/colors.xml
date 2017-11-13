@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_normal">#79C018</color> <!-- 0E509A #87CE26-->
+    <color name="primary_light">#ABED4A</color> <!-- 0E509A -->
+    <color name="primary_dark">#549B00</color> <!-- 0E509A -->
+
+    <color name="text_primary">#333333</color>
+    <color name="text_primary2">#666666</color>
+    <color name="text_secondary">#999999</color>
+    <color name="text_tertiary">#BDBDBD</color>
+    <color name="text_hint">@color/text_tertiary</color>
+    <color name="text_shadow">#13375B</color>
+
+    <color name="dialog_message_text">@color/text_primary</color>
+    <color name="dialog_title_text">@color/text_primary</color>
+</resources>

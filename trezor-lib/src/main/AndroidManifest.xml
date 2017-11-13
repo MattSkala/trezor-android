@@ -1,1 +1,9 @@
-<manifest package="com.satoshilabs.trezor.lib"/>
+<manifest package="com.satoshilabs.trezor.lib"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name=".ui.activity.TrezorActivity"
+                  android:theme="@style/Theme.Transparent" />
+        <activity android:name=".ui.activity.EnterPinActivity"
+                  android:theme="@style/Theme.Dialog" />
+    </application>
+</manifest>

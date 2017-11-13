@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DISCONNECTED -->
+    <string name="connect_your_trezor_device">Connect your\n<b>TREZOR</b> device</string>
+
+    <!-- CONNECTED -->
+    <string name="loading">Loading…</string>
+
+    <!-- ENTER PIN -->
+    <string name="enter_pin_current_prompt">Please enter current PIN</string>
+    <string name="enter_pin_new_prompt">Please enter new PIN</string>
+    <string name="enter_pin_repeat_prompt">Please repeat new PIN</string>
+    <string name="enter_pin_text">Look at the device for number positions</string>
+    <string name="enter_pin_text_repeat">Note that the positions of numbers shown on the device have changed!</string>
+    <string name="enter_pin_strength_weak">Weak</string>
+    <string name="enter_pin_strength_fine">Fine</string>
+    <string name="enter_pin_strength_strong">Strong</string>
+    <string name="enter_pin_strength_ultimate">Ultimate</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_gravity="center"
+              android:gravity="center"
+              android:paddingTop="24dp"
+              android:paddingBottom="24dp"
+              android:paddingLeft="24dp"
+              android:paddingRight="24dp">
+
+    <ImageView
+        android:layout_width="84dp"
+        android:layout_height="84dp"
+        android:padding="8dp"
+        android:src="@drawable/trezor_connect"
+        android:background="@drawable/trezor_connect_bg"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:text="@string/connect_your_trezor_device"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        android:fontFamily="sans-serif-light"/>
+</LinearLayout>
