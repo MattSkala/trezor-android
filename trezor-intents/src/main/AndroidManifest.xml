@@ -5,5 +5,7 @@
                   android:theme="@style/Theme.Transparent" />
         <activity android:name=".ui.activity.EnterPinActivity"
                   android:theme="@style/Theme.Dialog" />
+        <activity android:name=".ui.activity.EnterPassphraseActivity"
+                  android:theme="@style/Theme.Dialog" />
     </application>
 </manifest>

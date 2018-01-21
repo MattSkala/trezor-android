@@ -17,6 +17,12 @@
     <string name="enter_pin_strength_strong">Strong</string>
     <string name="enter_pin_strength_ultimate">Ultimate</string>
 
+    <!-- ENTER PASSPHRASE -->
+    <string name="enter_passphrase_title">Please enter your passphrase</string>
+    <string name="enter_passphrase_hint1">Passphrase</string>
+    <string name="enter_passphrase_hint2">Re-type for control</string>
+    <string name="enter_passphrase_no_match">Passphrases do not match</string>
+
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
 </resources>

@@ -110,6 +110,12 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun executePassphraseAck(passphrase: String) {
+        AsyncTask.execute {
+            trezorApi.sendPassphraseAck(passphrase)
+        }
+    }
+
     fun executeCancel() {
         AsyncTask.execute {
             if (trezorManager.tryConnectDevice()) {

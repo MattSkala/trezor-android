@@ -21,22 +21,23 @@ import com.satoshilabs.trezor.lib.protobuf.TrezorType
 
 class TrezorActivity : AppCompatActivity() {
     companion object {
-        private val TAG = "TrezorActivity"
+        private const val TAG = "TrezorActivity"
 
-        @JvmField val EXTRA_REQUEST = "request"
-        @JvmField val EXTRA_RESULT = "result"
+        const val EXTRA_REQUEST = "request"
+        const val EXTRA_RESULT = "result"
 
-        private val REQUEST_ENTER_PIN = 1
+        private const val REQUEST_ENTER_PIN = 1
+        private const val REQUEST_ENTER_PASSPHRASE = 2
 
         @JvmStatic
-        public fun createIntent(context: Context, request: TrezorRequest): Intent {
+        fun createIntent(context: Context, request: TrezorRequest): Intent {
             val intent = Intent(context, TrezorActivity::class.java)
             intent.putExtra(EXTRA_REQUEST, request)
             return intent
         }
 
         @JvmStatic
-        public fun getResult(data: Intent): TrezorResult {
+        fun getResult(data: Intent): TrezorResult {
             return data.getParcelableExtra(EXTRA_RESULT)
         }
     }
@@ -96,6 +97,19 @@ class TrezorActivity : AppCompatActivity() {
                     val pin = data?.getStringExtra(EnterPinActivity.EXTRA_PIN_ENCODED)
                     if (pin != null) {
                         viewModel.executePinMatrixAck(pin)
+                        return
+                    }
+                }
+
+                viewModel.executeCancel()
+                setResult(RESULT_CANCELED)
+                finish()
+            }
+            REQUEST_ENTER_PASSPHRASE -> {
+                if (resultCode == RESULT_OK) {
+                    val passphrase = data?.getStringExtra(EnterPassphraseActivity.EXTRA_PASSPHRASE)
+                    if (passphrase != null) {
+                        viewModel.executePassphraseAck(passphrase)
                         return
                     }
                 }
@@ -181,6 +195,8 @@ class TrezorActivity : AppCompatActivity() {
     }
 
     private fun startEnterPassphraseActivity() {
-        // TODO
+        dialog?.dismiss()
+        val intent = Intent(this, EnterPassphraseActivity::class.java)
+        startActivityForResult(intent, REQUEST_ENTER_PASSPHRASE)
     }
 }
