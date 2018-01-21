@@ -39,7 +39,7 @@ dependencies {
     compile "com.android.support:support-v4:${project.ext.support_version}"
     compile "com.android.support:appcompat-v7:${project.ext.support_version}"
     compile 'com.jakewharton.timber:timber:4.5.1'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     compile "android.arch.lifecycle:extensions:1.0.0"
 }
 
@@ -47,20 +47,23 @@ dependencyVerification {
     verify = [
             'com.google.protobuf:protobuf-java:f3411ade77523d5f0d013d4f25c36879e66f0c5e1e4310f7096d54d0d2553554',
             'com.android.support:support-v4:afd802f1926475f40c5b6b42855c9a626a854298908dafdb455deb6dab2640f2',
+            'com.android.support:appcompat-v7:1402c29a49db30346c21a7d40634461765b3ab826f5dd95bc4dcc76787b21851',
             'com.jakewharton.timber:timber:d553d3d3e883ce7d061f1b21b95d6ee0840f3bfbf6d3bd51c5671f0b0f0b0091',
-            'org.jetbrains.kotlin:kotlin-stdlib-jre7:7062f55a80cf67d4977c9ed8f0c766633e04cf2c9cc24fdc926dcf706612959a',
+            'org.jetbrains.kotlin:kotlin-stdlib-jdk7:b4df1248d467925a5c3ec29b3ef0a0950f72b7b1ef45e919478d0082159daa06',
             'android.arch.lifecycle:extensions:851f718fd2afda1e7aa93537dae1a5c1fe47710db62dcd7cd24c4b3b14ef0d90',
             'com.android.support:support-media-compat:bc1c0252c1d071a1676fd280a792cf0717833fb3afd0ef73070ddc51ef921ad7',
             'com.android.support:support-fragment:05a859783ae4a285c6d5c9865e1242b86f5bfb69a30455ca6c8495f24c09d9ed',
             'com.android.support:support-core-utils:b33c5a5d67b8bfa6c8829875661779279157bf23e6042179820eaf1745034a72',
+            'com.android.support:animated-vector-drawable:365050110411c86c7eec86101b49ab53557ffe6667f60b19055f1d35c38a577b',
             'com.android.support:support-core-ui:91614f829f8a6f1fc2d28efc58ea2735212225ab02cdf768b3dd9af72371d5f0',
+            'com.android.support:support-vector-drawable:67154ea191f735496502214bc6da6195738829a8e9d59e8042a1e030a2c7f19c',
             'com.android.support:support-compat:70dfd92561421e5ae113dfc4045fc94c90caca9912839b3d08c793aa391aedcc',
-            'org.jetbrains.kotlin:kotlin-stdlib:0156d3f3f54a82eda56285b82aa85caadfdf00d90cde549f7091e0bb0702aad2',
-            'android.arch.lifecycle:runtime:d0b36278878c82b838acc4308595bec61a3b5f6e7f2acc34172d7e071b2cf26d',
             'android.arch.core:runtime:9e08fc5c4d6e48f58c6865b55ba0e72a88f907009407767274187a873e524734',
+            'android.arch.lifecycle:runtime:d0b36278878c82b838acc4308595bec61a3b5f6e7f2acc34172d7e071b2cf26d',
             'android.arch.core:common:5192934cd73df32e2c15722ed7fc488dde90baaec9ae030010dd1a80fb4e74e1',
             'android.arch.lifecycle:common:ff0215b54e7cbaaa898f8fd00e265ed6ea198859e10604bc1c5e78477df48b5c',
             'com.android.support:support-annotations:240912b779fe7413bdd97c94ac2a92d1fb29bd53c4d50c6982e5942b01278ac0',
+            'org.jetbrains.kotlin:kotlin-stdlib:79b23d59bf9d457483ab1368f3b02d7423a6e7841533c95abc5aab20a3069be4',
             'org.jetbrains:annotations:ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
     ]
 }
