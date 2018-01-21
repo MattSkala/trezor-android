@@ -1,4 +1,4 @@
-package com.satoshilabs.trezor.lib.ui.activity;
+package com.satoshilabs.trezor.intents.ui.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -12,11 +12,11 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.TextView;
 
+import com.satoshilabs.trezor.intents.R;
 import com.satoshilabs.trezor.lib.protobuf.TrezorType.PinMatrixRequestType;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.satoshilabs.trezor.lib.R;
 
 public class EnterPinActivity extends AppCompatActivity {
     private static final int PIN_MAX_LENGTH = 9;

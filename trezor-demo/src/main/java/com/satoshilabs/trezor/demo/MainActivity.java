@@ -6,10 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
-import com.satoshilabs.trezor.lib.ui.activity.TrezorActivity;
-import com.satoshilabs.trezor.lib.ui.data.GetPublicKeyRequest;
-import com.satoshilabs.trezor.lib.ui.data.GetPublicKeyResult;
+import com.satoshilabs.trezor.intents.ui.activity.TrezorActivity;
+import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyRequest;
+import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult;
 
 import timber.log.Timber;
 

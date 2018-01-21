@@ -1,15 +1,15 @@
-package com.satoshilabs.trezor.lib.ui.viewmodel
+package com.satoshilabs.trezor.intents.ui.viewmodel
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
 import android.os.AsyncTask
 import android.util.Log
-import com.satoshilabs.trezor.lib.TrezorApi
+import com.satoshilabs.trezor.intents.TrezorApi
+import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult
+import com.satoshilabs.trezor.intents.ui.data.TrezorResult
 import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
-import com.satoshilabs.trezor.lib.ui.data.GetPublicKeyResult
-import com.satoshilabs.trezor.lib.ui.data.TrezorResult
 import timber.log.Timber
 
 class TrezorViewModel(application: Application) : AndroidViewModel(application) {

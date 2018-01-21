@@ -1,4 +1,4 @@
-package com.satoshilabs.trezor.lib.ui.activity
+package com.satoshilabs.trezor.intents.ui.activity
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -12,13 +12,12 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.satoshilabs.trezor.lib.R
+import com.satoshilabs.trezor.intents.R
+import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyRequest
+import com.satoshilabs.trezor.intents.ui.data.TrezorRequest
+import com.satoshilabs.trezor.intents.ui.data.TrezorResult
+import com.satoshilabs.trezor.intents.ui.viewmodel.TrezorViewModel
 import com.satoshilabs.trezor.lib.protobuf.TrezorType
-
-import com.satoshilabs.trezor.lib.ui.data.GetPublicKeyRequest
-import com.satoshilabs.trezor.lib.ui.data.TrezorRequest
-import com.satoshilabs.trezor.lib.ui.data.TrezorResult
-import com.satoshilabs.trezor.lib.ui.viewmodel.TrezorViewModel
 
 class TrezorActivity : AppCompatActivity() {
     companion object {

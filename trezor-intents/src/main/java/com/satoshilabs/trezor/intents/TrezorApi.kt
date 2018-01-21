@@ -1,4 +1,4 @@
-package com.satoshilabs.trezor.lib
+package com.satoshilabs.trezor.intents
 
 import android.os.Handler
 import android.os.Looper
@@ -7,6 +7,7 @@ import android.util.Log
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import com.satoshilabs.trezor.lib.protobuf.TrezorType
+import com.satoshilabs.trezor.lib.TrezorManager
 
 class TrezorApi(private val trezorManager: TrezorManager) {
     companion object {

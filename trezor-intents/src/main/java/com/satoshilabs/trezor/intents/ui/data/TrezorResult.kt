@@ -1,4 +1,4 @@
-package com.satoshilabs.trezor.lib.ui.data
+package com.satoshilabs.trezor.intents.ui.data
 
 import android.annotation.SuppressLint
 import android.os.Parcelable
