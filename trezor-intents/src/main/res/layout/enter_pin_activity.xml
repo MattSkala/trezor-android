@@ -151,14 +151,17 @@
 
                 <Button
                     android:id="@+id/btn_cancel"
-                    style="@style/SDL.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?borderlessButtonStyle"
                     android:text="@string/cancel"
                     />
 
                 <Button
                     android:id="@+id/btn_confirm"
-                    style="@style/SDL.Button"
-                    android:layout_marginLeft="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?borderlessButtonStyle"
                     android:text="@string/confirm"
                     />
 
