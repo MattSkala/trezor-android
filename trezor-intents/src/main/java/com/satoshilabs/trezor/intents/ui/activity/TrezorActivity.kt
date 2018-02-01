@@ -37,8 +37,8 @@ class TrezorActivity : AppCompatActivity() {
         }
 
         @JvmStatic
-        fun getResult(data: Intent): TrezorResult {
-            return data.getParcelableExtra(EXTRA_RESULT)
+        fun getResult(data: Intent?): TrezorResult? {
+            return data?.getParcelableExtra(EXTRA_RESULT)
         }
     }
 
