@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     GetPublicKeyResult result = (GetPublicKeyResult) TrezorActivity.getResult(data);
                     new AlertDialog.Builder(this)
-                        .setMessage(result.getXPubKey())
+                        .setMessage(result.getPublicKey().getXpub())
                         .show();
                 }
                 break;

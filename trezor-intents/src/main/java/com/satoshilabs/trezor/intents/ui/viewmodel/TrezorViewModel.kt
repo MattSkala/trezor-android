@@ -81,7 +81,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
             }
 
             override fun onPublicKey(publicKey: TrezorMessage.PublicKey) {
-                result.value = GetPublicKeyResult(publicKey.xpub)
+                result.value = GetPublicKeyResult(publicKey)
             }
         }
 
