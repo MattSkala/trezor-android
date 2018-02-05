@@ -9,4 +9,8 @@ public abstract class TrezorResult : Parcelable
 
 @SuppressLint("ParcelCreator")
 @Parcelize
+public class InitializeResult(val features: TrezorMessage.Features) : TrezorResult(), Parcelable
+
+@SuppressLint("ParcelCreator")
+@Parcelize
 public class GetPublicKeyResult(val publicKey: TrezorMessage.PublicKey) : TrezorResult(), Parcelable

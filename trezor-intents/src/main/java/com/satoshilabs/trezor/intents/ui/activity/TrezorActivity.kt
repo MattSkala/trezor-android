@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.satoshilabs.trezor.intents.R
 import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyRequest
+import com.satoshilabs.trezor.intents.ui.data.InitializeRequest
 import com.satoshilabs.trezor.intents.ui.data.TrezorRequest
 import com.satoshilabs.trezor.intents.ui.data.TrezorResult
 import com.satoshilabs.trezor.intents.ui.viewmodel.TrezorViewModel
@@ -140,7 +141,8 @@ class TrezorActivity : AppCompatActivity() {
     private fun handleRequest(request: TrezorRequest) {
         Log.d("TrezorActivity", "handleRequest " + request)
         when (request) {
-            is GetPublicKeyRequest -> viewModel.executeGetPublicKey(request.path)
+            is InitializeRequest -> viewModel.executeInitialize()
+            is GetPublicKeyRequest -> viewModel.executeGetPublicKey(request.path, request.initialize)
         }
     }
 

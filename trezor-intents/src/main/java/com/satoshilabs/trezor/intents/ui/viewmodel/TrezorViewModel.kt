@@ -7,6 +7,7 @@ import android.os.AsyncTask
 import android.util.Log
 import com.satoshilabs.trezor.intents.TrezorApi
 import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult
+import com.satoshilabs.trezor.intents.ui.data.InitializeResult
 import com.satoshilabs.trezor.intents.ui.data.TrezorResult
 import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
@@ -63,6 +64,10 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         state.value = State.DISCONNECTED
 
         trezorApi.deviceResponseListener = object : TrezorApi.DeviceResponseListener {
+            override fun onFeatures(features: TrezorMessage.Features) {
+                result.value = InitializeResult(features)
+            }
+
             override fun onFailure() {
                 // set failure type?
                 state.value = State.CONNECTED
@@ -95,9 +100,15 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         initialized = true
     }
 
-    fun executeGetPublicKey(path: IntArray) {
+    fun executeInitialize() {
         AsyncTask.execute {
-            if (trezorApi.initialize()) {
+            trezorApi.initialize()
+        }
+    }
+
+    fun executeGetPublicKey(path: IntArray, initialize: Boolean) {
+        AsyncTask.execute {
+            if (!initialize || trezorApi.initializeSync()) {
                 val pathList = path.toList()
                 trezorApi.getPublicKey(pathList)
             }

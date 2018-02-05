@@ -3,11 +3,9 @@ package com.satoshilabs.trezor.intents
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-
 import com.google.protobuf.Message
-import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
-import com.satoshilabs.trezor.lib.protobuf.TrezorType
 import com.satoshilabs.trezor.lib.TrezorManager
+import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 
 class TrezorApi(private val trezorManager: TrezorManager) {
     companion object {
@@ -17,10 +15,13 @@ class TrezorApi(private val trezorManager: TrezorManager) {
     var deviceResponseListener: DeviceResponseListener? = null
     private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
 
-    fun initialize(): Boolean {
-        val message = TrezorMessage.Initialize.newBuilder().build()
-        val response = trezorManager.sendMessage(message)
-        return response is TrezorMessage.Features && response.isInitialized
+    fun initialize() {
+        sendMessage(TrezorMessage.Initialize.newBuilder().build())
+    }
+
+    fun initializeSync(): Boolean {
+        val response = trezorManager.sendMessage(TrezorMessage.Initialize.newBuilder().build())
+        return response.isInitialized
     }
 
     fun cancel() {
@@ -67,6 +68,8 @@ class TrezorApi(private val trezorManager: TrezorManager) {
             deviceResponseListener?.onPublicKey(message)
         } else if (message is TrezorMessage.Failure) {
             deviceResponseListener?.onFailure()
+        } else if (message is TrezorMessage.Features) {
+            deviceResponseListener?.onFeatures(message)
         } else {
             Log.d(TAG, "Unknown message: " + message)
         }
@@ -78,5 +81,6 @@ class TrezorApi(private val trezorManager: TrezorManager) {
         fun onButtonRequest()
         fun onPublicKey(publicKey: TrezorMessage.PublicKey)
         fun onFailure()
+        fun onFeatures(features: TrezorMessage.Features)
     }
 }

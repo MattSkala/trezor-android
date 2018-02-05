@@ -4,8 +4,12 @@ import android.annotation.SuppressLint
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
-public abstract class TrezorRequest : Parcelable
+abstract class TrezorRequest : Parcelable
 
 @SuppressLint("ParcelCreator")
 @Parcelize
-public class GetPublicKeyRequest(val path: IntArray) : TrezorRequest(), Parcelable
+class InitializeRequest : TrezorRequest(), Parcelable
+
+@SuppressLint("ParcelCreator")
+@Parcelize
+class GetPublicKeyRequest(val path: IntArray, val initialize: Boolean = true) : TrezorRequest(), Parcelable
