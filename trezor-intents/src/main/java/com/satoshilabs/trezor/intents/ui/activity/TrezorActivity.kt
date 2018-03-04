@@ -9,15 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.satoshilabs.trezor.intents.R
-import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyRequest
-import com.satoshilabs.trezor.intents.ui.data.InitializeRequest
+import com.satoshilabs.trezor.intents.ui.data.CheckAddressRequest
 import com.satoshilabs.trezor.intents.ui.data.TrezorRequest
 import com.satoshilabs.trezor.intents.ui.data.TrezorResult
 import com.satoshilabs.trezor.intents.ui.viewmodel.TrezorViewModel
+import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import com.satoshilabs.trezor.lib.protobuf.TrezorType
 
 class TrezorActivity : AppCompatActivity() {
@@ -65,9 +64,16 @@ class TrezorActivity : AppCompatActivity() {
                     showLoadingDialog()
                     handleIntentRequest()
                 }
+                TrezorViewModel.State.FAILURE -> {
+                    viewModel.sendCancel()
+                    setResult(Activity.RESULT_CANCELED)
+                    finish()
+                }
                 TrezorViewModel.State.PIN_MATRIX_REQUEST -> startEnterPinActivity()
                 TrezorViewModel.State.PASSPHRASE_REQUEST -> startEnterPassphraseActivity()
-                TrezorViewModel.State.BUTTON_REQUEST -> showButtonDialog()
+                TrezorViewModel.State.BUTTON_REQUEST -> {
+                    showButtonRequestDialog(viewModel.buttonRequest)
+                }
             }
         })
 
@@ -97,12 +103,12 @@ class TrezorActivity : AppCompatActivity() {
                 if (resultCode == RESULT_OK) {
                     val pin = data?.getStringExtra(EnterPinActivity.EXTRA_PIN_ENCODED)
                     if (pin != null) {
-                        viewModel.executePinMatrixAck(pin)
+                        viewModel.sendPinMatrixAck(pin)
                         return
                     }
                 }
 
-                viewModel.executeCancel()
+                viewModel.sendCancel()
                 setResult(RESULT_CANCELED)
                 finish()
             }
@@ -110,12 +116,12 @@ class TrezorActivity : AppCompatActivity() {
                 if (resultCode == RESULT_OK) {
                     val passphrase = data?.getStringExtra(EnterPassphraseActivity.EXTRA_PASSPHRASE)
                     if (passphrase != null) {
-                        viewModel.executePassphraseAck(passphrase)
+                        viewModel.sendPassphraseAck(passphrase)
                         return
                     }
                 }
 
-                viewModel.executeCancel()
+                viewModel.sendCancel()
                 setResult(RESULT_CANCELED)
                 finish()
             }
@@ -134,16 +140,8 @@ class TrezorActivity : AppCompatActivity() {
     //
 
     private fun handleIntentRequest() {
-        val request: TrezorRequest = intent.getParcelableExtra(EXTRA_REQUEST)
-        handleRequest(request)
-    }
-
-    private fun handleRequest(request: TrezorRequest) {
-        Log.d("TrezorActivity", "handleRequest " + request)
-        when (request) {
-            is InitializeRequest -> viewModel.executeInitialize()
-            is GetPublicKeyRequest -> viewModel.executeGetPublicKey(request.path, request.initialize)
-        }
+        val request = intent.getParcelableExtra(EXTRA_REQUEST) as TrezorRequest
+        viewModel.sendMessage(request.message)
     }
 
 
@@ -156,10 +154,7 @@ class TrezorActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_connect, null)
         dialog = AlertDialog.Builder(this)
                 .setView(view)
-                .setOnCancelListener {
-                    viewModel.executeCancel()
-                    finish()
-                }
+                .setCancelable(false)
                 .show()
         dialog?.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -170,17 +165,29 @@ class TrezorActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null)
         dialog = AlertDialog.Builder(this)
                 .setView(view)
-                .setOnCancelListener {
-                    viewModel.executeCancel()
-                    finish()
-                }
+                .setCancelable(false)
                 .show()
         dialog?.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
-    private fun showButtonDialog() {
-        // TODO
+    private fun showButtonRequestDialog(message: TrezorMessage.ButtonRequest?) {
+        dialog?.dismiss()
+
+        val request = intent.getParcelableExtra(EXTRA_REQUEST) as TrezorRequest
+
+        if (request is CheckAddressRequest) {
+            dialog = AlertDialog.Builder(this)
+                    .setTitle(R.string.button_request_address_message)
+                    .setMessage(request.address)
+                    .setCancelable(false)
+                    .show()
+        } else {
+            dialog = AlertDialog.Builder(this)
+                    .setMessage(R.string.button_request_message)
+                    .setCancelable(false)
+                    .show()
+        }
     }
 
 

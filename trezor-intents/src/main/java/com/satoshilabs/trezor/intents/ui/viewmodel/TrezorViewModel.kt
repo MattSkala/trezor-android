@@ -3,12 +3,16 @@ package com.satoshilabs.trezor.intents.ui.viewmodel
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
-import android.os.AsyncTask
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
 import android.util.Log
-import com.satoshilabs.trezor.intents.TrezorApi
+import com.google.protobuf.Message
+import com.satoshilabs.trezor.intents.ui.data.GetAddressResult
 import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult
 import com.satoshilabs.trezor.intents.ui.data.InitializeResult
 import com.satoshilabs.trezor.intents.ui.data.TrezorResult
+import com.satoshilabs.trezor.lib.TrezorException
 import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import timber.log.Timber
@@ -21,18 +25,23 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     enum class State {
         DISCONNECTED,
         CONNECTED,
+        FAILURE,
         PIN_MATRIX_REQUEST,
         PASSPHRASE_REQUEST,
         BUTTON_REQUEST
     }
 
     lateinit var trezorManager: TrezorManager
-    lateinit var trezorApi: TrezorApi
+
+    private val handlerThread = HandlerThread("HandlerThread")
+    private val backgroundHandler: Handler
+    private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
 
     var initialized: Boolean = false
 
     val state: MutableLiveData<State> = MutableLiveData()
     val result: MutableLiveData<TrezorResult> = MutableLiveData()
+    var buttonRequest: TrezorMessage.ButtonRequest? = null
 
     val trezorConnectionChangedReceiver = object : TrezorManager.TrezorConnectionChangedReceiver() {
         override fun onTrezorConnectionChanged(connected: Boolean) {
@@ -56,39 +65,16 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    init {
+        handlerThread.start()
+        backgroundHandler = Handler(handlerThread.looper)
+    }
+
     fun init() {
         if (initialized) return
 
         trezorManager = TrezorManager(getApplication())
-        trezorApi = TrezorApi(trezorManager)
         state.value = State.DISCONNECTED
-
-        trezorApi.deviceResponseListener = object : TrezorApi.DeviceResponseListener {
-            override fun onFeatures(features: TrezorMessage.Features) {
-                result.value = InitializeResult(features)
-            }
-
-            override fun onFailure() {
-                // set failure type?
-                state.value = State.CONNECTED
-            }
-
-            override fun onPinMatrixRequest() {
-                state.value = State.PIN_MATRIX_REQUEST
-            }
-
-            override fun onPassphraseRequest() {
-                state.value = State.PASSPHRASE_REQUEST
-            }
-
-            override fun onButtonRequest() {
-                state.value = State.BUTTON_REQUEST
-            }
-
-            override fun onPublicKey(publicKey: TrezorMessage.PublicKey) {
-                result.value = GetPublicKeyResult(publicKey)
-            }
-        }
 
         if (trezorManager.tryConnectDevice()) {
             Timber.tag(TAG).d("device is connected")
@@ -100,37 +86,71 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         initialized = true
     }
 
-    fun executeInitialize() {
-        AsyncTask.execute {
-            trezorApi.initialize()
-        }
+    override fun onCleared() {
+        handlerThread.quit()
     }
 
-    fun executeGetPublicKey(path: IntArray, initialize: Boolean) {
-        AsyncTask.execute {
-            if (!initialize || trezorApi.initializeSync()) {
-                val pathList = path.toList()
-                trezorApi.getPublicKey(pathList)
+    fun sendMessage(message: Message) {
+        backgroundHandler.post {
+            Log.d(TAG, "sendMessage " + message)
+            try {
+                val response = trezorManager.sendMessage(message)
+
+                mainThreadHandler.post {
+                    handleResponse(response)
+                }
+            } catch (e: TrezorException) {
+                e.printStackTrace()
             }
         }
     }
 
-    fun executePinMatrixAck(pin: String) {
-        AsyncTask.execute {
-            trezorApi.sendPinMatrixAck(pin)
-        }
+    fun sendPinMatrixAck(pin: String) {
+        sendMessage(TrezorMessage.PinMatrixAck.newBuilder()
+                .setPin(pin)
+                .build())
     }
 
-    fun executePassphraseAck(passphrase: String) {
-        AsyncTask.execute {
-            trezorApi.sendPassphraseAck(passphrase)
-        }
+    fun sendPassphraseAck(passphrase: String) {
+        sendMessage(TrezorMessage.PassphraseAck.newBuilder()
+                .setPassphrase(passphrase)
+                .build())
     }
 
-    fun executeCancel() {
-        AsyncTask.execute {
-            if (trezorManager.tryConnectDevice()) {
-                trezorApi.cancel()
+    fun sendCancel() {
+        sendMessage(TrezorMessage.Cancel.newBuilder().build())
+    }
+
+    private fun sendButtonAck() {
+        sendMessage(TrezorMessage.ButtonAck.newBuilder().build())
+    }
+
+    private fun handleResponse(message: Message) {
+        Log.d(TAG, "handleResponse " + message)
+
+        when (message) {
+            is TrezorMessage.PinMatrixRequest -> {
+                state.value = State.PIN_MATRIX_REQUEST
+            }
+            is TrezorMessage.PassphraseRequest -> {
+                state.value = State.PASSPHRASE_REQUEST
+            }
+            is TrezorMessage.ButtonRequest -> {
+                buttonRequest = message
+                state.value = State.BUTTON_REQUEST
+                sendButtonAck()
+            }
+            is TrezorMessage.PublicKey -> {
+                result.value = GetPublicKeyResult(message)
+            }
+            is TrezorMessage.Failure -> {
+                state.value = State.FAILURE
+            }
+            is TrezorMessage.Features -> {
+                result.value = InitializeResult(message)
+            }
+            is TrezorMessage.Address -> {
+                result.value = GetAddressResult(message)
             }
         }
     }

@@ -32,7 +32,7 @@
     <dimen name="column_width_xxlarge">72dp</dimen>
 
     <dimen name="btn_pin_width">80dp</dimen>
-    <dimen name="btn_pin_height">48dp</dimen>
+    <dimen name="btn_pin_height">52dp</dimen>
 
     <!-- DIALOGS -->
     <dimen name="sdl__text_hor_padding">16dp</dimen>
