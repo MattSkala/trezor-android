@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.satoshilabs.trezor.intents.R
 import com.satoshilabs.trezor.intents.ui.data.CheckAddressRequest
+import com.satoshilabs.trezor.intents.ui.data.SignTxRequest
 import com.satoshilabs.trezor.intents.ui.data.TrezorRequest
 import com.satoshilabs.trezor.intents.ui.data.TrezorResult
 import com.satoshilabs.trezor.intents.ui.viewmodel.TrezorViewModel
@@ -141,7 +142,11 @@ class TrezorActivity : AppCompatActivity() {
 
     private fun handleIntentRequest() {
         val request = intent.getParcelableExtra(EXTRA_REQUEST) as TrezorRequest
-        viewModel.sendMessage(request.message)
+        if (request is SignTxRequest) {
+            viewModel.signTx(request.message, request.inputTxs)
+        } else {
+            viewModel.sendMessage(request.message)
+        }
     }
 
 
@@ -154,7 +159,10 @@ class TrezorActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_connect, null)
         dialog = AlertDialog.Builder(this)
                 .setView(view)
-                .setCancelable(false)
+                .setCancelable(true)
+                .setOnCancelListener {
+                    finish()
+                }
                 .show()
         dialog?.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
