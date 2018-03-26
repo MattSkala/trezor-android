@@ -1,6 +1,6 @@
-package com.satoshilabs.trezor.intents.ui
+package com.satoshilabs.trezor.intents
 
-private const val HEX_CHARS = "0123456789ABCDEF"
+private const val HEX_CHARS = "0123456789abcdef"
 
 /**
  * Converts ByteArray to a hex string.
@@ -28,8 +28,8 @@ fun String.hexToBytes(): ByteArray {
     val result = ByteArray(length / 2)
 
     for (i in 0 until length step 2) {
-        val firstIndex = HEX_CHARS.indexOf(this[i]);
-        val secondIndex = HEX_CHARS.indexOf(this[i + 1]);
+        val firstIndex = HEX_CHARS.indexOf(this[i].toLowerCase())
+        val secondIndex = HEX_CHARS.indexOf(this[i + 1].toLowerCase())
 
         val octet = firstIndex.shl(4).or(secondIndex)
         result[i.shr(1)] = octet.toByte()

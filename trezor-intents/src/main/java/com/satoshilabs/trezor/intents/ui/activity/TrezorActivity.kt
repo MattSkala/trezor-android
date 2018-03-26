@@ -26,6 +26,7 @@ class TrezorActivity : AppCompatActivity() {
 
         const val EXTRA_REQUEST = "request"
         const val EXTRA_RESULT = "result"
+        const val EXTRA_SIGNED_TX = "signed_tx"
 
         private const val REQUEST_ENTER_PIN = 1
         private const val REQUEST_ENTER_PASSPHRASE = 2
@@ -56,7 +57,6 @@ class TrezorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         viewModel = ViewModelProviders.of(this).get(TrezorViewModel::class.java)
-        viewModel.init()
 
         viewModel.state.observe(this, Observer {
             when (it) {
@@ -81,6 +81,13 @@ class TrezorActivity : AppCompatActivity() {
         viewModel.result.observe(this, Observer {
             val data = Intent()
             data.putExtra(EXTRA_RESULT, it)
+            setResult(Activity.RESULT_OK, data)
+            finish()
+        })
+
+        viewModel.signedTx.observe(this, Observer {
+            val data = Intent()
+            data.putExtra(EXTRA_SIGNED_TX, it)
             setResult(Activity.RESULT_OK, data)
             finish()
         })

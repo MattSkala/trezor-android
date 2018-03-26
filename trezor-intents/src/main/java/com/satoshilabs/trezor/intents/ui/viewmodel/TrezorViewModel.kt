@@ -8,6 +8,7 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import com.google.protobuf.Message
+import com.satoshilabs.trezor.intents.toHex
 import com.satoshilabs.trezor.intents.ui.data.GetAddressResult
 import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult
 import com.satoshilabs.trezor.intents.ui.data.InitializeResult
@@ -17,12 +18,11 @@ import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import com.satoshilabs.trezor.lib.protobuf.TrezorType
 import timber.log.Timber
-import java.nio.charset.Charset
 import java.util.concurrent.LinkedBlockingQueue
 
 class TrezorViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
-        val TAG = "TrezorViewModel"
+        private const val TAG = "TrezorViewModel"
     }
 
     enum class State {
@@ -31,8 +31,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         FAILURE,
         PIN_MATRIX_REQUEST,
         PASSPHRASE_REQUEST,
-        BUTTON_REQUEST,
-        TX_REQUEST
+        BUTTON_REQUEST
     }
 
     lateinit var trezorManager: TrezorManager
@@ -41,19 +40,16 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     private val backgroundHandler: Handler
     private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
 
-    val pinMatrixEntry = LinkedBlockingQueue<String>(1)
-    val passphraseEntry = LinkedBlockingQueue<String>(1)
+    private val pinMatrixEntry = LinkedBlockingQueue<String>(1)
+    private val passphraseEntry = LinkedBlockingQueue<String>(1)
 
-    var initialized: Boolean = false
-
-    val state: MutableLiveData<State> = MutableLiveData()
-    val result: MutableLiveData<TrezorResult> = MutableLiveData()
+    val state = MutableLiveData<State>()
+    val result = MutableLiveData<TrezorResult>()
+    var signedTx = MutableLiveData<String>()
     var buttonRequest: TrezorMessage.ButtonRequest? = null
-    //var transaction: TrezorType.TransactionType? = null
 
     val trezorConnectionChangedReceiver = object : TrezorManager.TrezorConnectionChangedReceiver() {
         override fun onTrezorConnectionChanged(connected: Boolean) {
-            Log.d(TAG, "trezorConnectionChangedReceiver: onTrezorConnectionChanged: connected = " + connected)
             if (connected) {
                 trezorManager.requestDevicePermissionIfCan(true)
             } else {
@@ -65,8 +61,6 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
     val usbPermissionReceiver = object : TrezorManager.UsbPermissionReceiver() {
         override fun onUsbPermissionResult(granted: Boolean) {
-            Log.d(TAG, "usbPermissionReceiver: onUsbPermissionResult: granted = " + granted)
-
             if (granted) {
                 state.value = State.CONNECTED
             }
@@ -76,10 +70,6 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     init {
         handlerThread.start()
         backgroundHandler = Handler(handlerThread.looper)
-    }
-
-    fun init() {
-        if (initialized) return
 
         trezorManager = TrezorManager(getApplication())
         state.value = State.DISCONNECTED
@@ -90,17 +80,18 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         } else {
             trezorManager.requestDevicePermissionIfCan(false)
         }
-
-        initialized = true
     }
 
     override fun onCleared() {
         handlerThread.quit()
     }
 
+    /**
+     * Sends a message to TREZOR asynhronously and handles the response.
+     */
     fun sendMessage(message: Message) {
         backgroundHandler.post {
-            Log.d(TAG, "sendMessage " + message)
+            Log.d(TAG, "sendMessage $message")
             try {
                 var response = trezorManager.sendMessage(message)
                 response = handleCommonRequests(response)
@@ -114,26 +105,41 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun signTx(tx: TrezorType.TransactionType, inputTxs: Map<ByteArray, TrezorType.TransactionType>) {
+    /**
+     * Signs a transaction.
+     *
+     * @param tx A transaction to sign.
+     * @param inputTxs Details of the previous transactions that are being spent in the new transaction.
+     */
+    fun signTx(tx: TrezorType.TransactionType, inputTxs: Map<String, TrezorType.TransactionType>) {
         backgroundHandler.post {
             signTxInternal(tx, inputTxs)
         }
     }
 
+    /**
+     * Sends a pin entered by the user.
+     */
     fun sendPinMatrixAck(pin: String) {
         pinMatrixEntry.put(pin)
     }
 
+    /**
+     * Sends a passphrase entered by the user.
+     */
     fun sendPassphraseAck(passphrase: String) {
         passphraseEntry.put(passphrase)
     }
 
+    /**
+     * Cancels the current action.
+     */
     fun sendCancel() {
         sendMessage(TrezorMessage.Cancel.newBuilder().build())
     }
 
     private fun handleResponse(message: Message) {
-        Log.d(TAG, "handleResponse " + message)
+        Log.d(TAG, "handleResponse $message")
 
         when (message) {
             is TrezorMessage.PublicKey -> {
@@ -152,7 +158,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun signTxInternal(tx: TrezorType.TransactionType,
-                               inputTxs: Map<ByteArray, TrezorType.TransactionType>) {
+                               inputTxs: Map<String, TrezorType.TransactionType>) {
         try {
             val signTx = TrezorMessage.SignTx.newBuilder()
                     .setInputsCount(tx.inputsCount)
@@ -161,21 +167,38 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
             var response = trezorManager.sendMessage(signTx)
 
+            val signedTxBytes = ArrayList<Byte>(1024)
+
             while (true) {
                 response = handleCommonRequests(response)
 
+                if (response is TrezorMessage.Failure) {
+                    Log.e(TAG, "Failure: " + response.code + ": " + response.message)
+                    mainThreadHandler.post {
+                        state.value = State.FAILURE
+                    }
+                    return
+                }
+
                 if (response !is TrezorMessage.TxRequest) {
                     Log.e(TAG, "Unexpected response: $response")
+                    mainThreadHandler.post {
+                        state.value = State.FAILURE
+                    }
                     return
                 }
 
                 Log.d(TAG, response.toString())
 
-                // TODO: save signed transaction part
+                if (response.hasSerialized() && response.serialized.hasSerializedTx()) {
+                    signedTxBytes += response.serialized.serializedTx.toByteArray().toList()
+                }
 
                 if (response.requestType == TrezorType.RequestType.TXFINISHED) {
                     // Transaction is signed
-                    // TODO: return signed transaction
+                    mainThreadHandler.post {
+                        signedTx.value = signedTxBytes.toByteArray().toHex()
+                    }
                     break
                 }
 
@@ -236,7 +259,6 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun handleButtonRequest(buttonRequest: TrezorMessage.ButtonRequest): Message {
         mainThreadHandler.post {
-            // TODO: refactor passing requests to activity
             this.buttonRequest = buttonRequest
             state.value = State.BUTTON_REQUEST
         }
@@ -246,20 +268,13 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun handleTxRequest(unsignedTx: TrezorType.TransactionType,
-                                inputTxs: Map<ByteArray, TrezorType.TransactionType>,
+                                inputTxs: Map<String, TrezorType.TransactionType>,
                                 message: TrezorMessage.TxRequest): Message {
-
-        inputTxs.forEach {
-            Log.d(TAG, "related tx: ${it.key.toString(Charset.defaultCharset())}}")
-        }
 
         val tx = if (message.details.hasTxHash()) {
             // TREZOR requested information about a previous transaction
-            // TODO: check txid encoding
-            val txidBytes = message.details.txHash.toByteArray()
-            val txid = message.details.txHash.toByteArray().toString(Charset.defaultCharset())
-            Log.d(TAG, "required tx: ${message.details.txHash.toString(Charset.defaultCharset())} $txid")
-            inputTxs[txidBytes] ?: throw Exception("Related input transaction not provided")
+            val txid = message.details.txHash.toByteArray().toHex()
+            inputTxs[txid] ?: throw Exception("Related input transaction not provided")
         } else {
             // TREZOR requested information about the transaction being signed
             unsignedTx
@@ -292,10 +307,17 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 trezorManager.sendMessage(responseMessage)
             }
             TrezorType.RequestType.TXOUTPUT -> {
-                val output = tx.getOutputs(message.details.requestIndex)
-                val responseTx = TrezorType.TransactionType.newBuilder()
-                        .addOutputs(output)
-                        .build()
+                val responseTx = if (message.details.hasTxHash()) {
+                    val output = tx.getBinOutputs(message.details.requestIndex)
+                    TrezorType.TransactionType.newBuilder()
+                            .addBinOutputs(output)
+                            .build()
+                } else {
+                    val output = tx.getOutputs(message.details.requestIndex)
+                    TrezorType.TransactionType.newBuilder()
+                            .addOutputs(output)
+                            .build()
+                }
                 val responseMessage = TrezorMessage.TxAck.newBuilder()
                         .setTx(responseTx)
                         .build()

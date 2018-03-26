@@ -22,5 +22,5 @@ class CheckAddressRequest(override val message: TrezorMessage.GetAddress, val ad
 
 @Parcelize
 class SignTxRequest(override val message: TrezorType.TransactionType,
-                    val inputTxs: Map<ByteArray, TrezorType.TransactionType>) :
+                    val inputTxs: Map<String, TrezorType.TransactionType>) :
         TrezorRequest(message), Parcelable
