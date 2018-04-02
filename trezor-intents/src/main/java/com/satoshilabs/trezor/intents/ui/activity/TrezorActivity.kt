@@ -27,6 +27,7 @@ class TrezorActivity : AppCompatActivity() {
         const val EXTRA_REQUEST = "request"
         const val EXTRA_RESULT = "result"
         const val EXTRA_SIGNED_TX = "signed_tx"
+        const val EXTRA_FAILURE = "failure"
 
         private const val REQUEST_ENTER_PIN = 1
         private const val REQUEST_ENTER_PASSPHRASE = 2
@@ -91,6 +92,13 @@ class TrezorActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK, data)
             finish()
         })
+
+        viewModel.failure.observe(this, Observer {
+            val data = Intent()
+            data.putExtra(EXTRA_FAILURE, it)
+            setResult(Activity.RESULT_CANCELED, data)
+            finish()
+        })
     }
 
     override fun onStart() {
@@ -116,7 +124,7 @@ class TrezorActivity : AppCompatActivity() {
                     }
                 }
 
-                viewModel.sendCancel()
+                viewModel.cancelPinMatrixRequest()
                 setResult(RESULT_CANCELED)
                 finish()
             }
@@ -129,7 +137,7 @@ class TrezorActivity : AppCompatActivity() {
                     }
                 }
 
-                viewModel.sendCancel()
+                viewModel.cancelPassphraseRequest()
                 setResult(RESULT_CANCELED)
                 finish()
             }

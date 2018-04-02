@@ -23,6 +23,8 @@ import java.util.concurrent.LinkedBlockingQueue
 class TrezorViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private const val TAG = "TrezorViewModel"
+
+        private const val POISON = ""
     }
 
     enum class State {
@@ -47,6 +49,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     val result = MutableLiveData<TrezorResult>()
     var signedTx = MutableLiveData<String>()
     var buttonRequest: TrezorMessage.ButtonRequest? = null
+    var failure = MutableLiveData<TrezorMessage.Failure>()
 
     val trezorConnectionChangedReceiver = object : TrezorManager.TrezorConnectionChangedReceiver() {
         override fun onTrezorConnectionChanged(connected: Boolean) {
@@ -125,10 +128,24 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
+     * Cancels current pin matrix request.
+     */
+    fun cancelPinMatrixRequest() {
+        pinMatrixEntry.put(POISON)
+    }
+
+    /**
      * Sends a passphrase entered by the user.
      */
     fun sendPassphraseAck(passphrase: String) {
         passphraseEntry.put(passphrase)
+    }
+
+    /**
+     * Cancels current passphrase request.
+     */
+    fun cancelPassphraseRequest() {
+        passphraseEntry.put(POISON)
     }
 
     /**
@@ -146,7 +163,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 result.value = GetPublicKeyResult(message)
             }
             is TrezorMessage.Failure -> {
-                state.value = State.FAILURE
+                failure.value = message
             }
             is TrezorMessage.Features -> {
                 result.value = InitializeResult(message)
@@ -175,7 +192,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 if (response is TrezorMessage.Failure) {
                     Log.e(TAG, "Failure: " + response.code + ": " + response.message)
                     mainThreadHandler.post {
-                        state.value = State.FAILURE
+                        failure.value = response as TrezorMessage.Failure
                     }
                     return
                 }
@@ -232,9 +249,13 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
             ""
         }
 
-        val pinMatrixAck = TrezorMessage.PinMatrixAck.newBuilder()
-                .setPin(pin)
-                .build()
+        val pinMatrixAck = if (pin !== POISON) {
+            TrezorMessage.PinMatrixAck.newBuilder()
+                    .setPin(pin)
+                    .build()
+        } else {
+            TrezorMessage.Cancel.getDefaultInstance()
+        }
 
         return trezorManager.sendMessage(pinMatrixAck)
     }
@@ -250,9 +271,13 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
             ""
         }
 
-        val passphraseAck = TrezorMessage.PassphraseAck.newBuilder()
-                .setPassphrase(passphrase)
-                .build()
+        val passphraseAck = if (passphrase !== POISON) {
+            TrezorMessage.PassphraseAck.newBuilder()
+                    .setPassphrase(passphrase)
+                    .build()
+        } else {
+            TrezorMessage.Cancel.getDefaultInstance()
+        }
 
         return trezorManager.sendMessage(passphraseAck)
     }
