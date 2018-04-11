@@ -45,6 +45,7 @@ dependencies {
 
     implementation project(':trezor-lib')
     implementation project(':cgcmn-liban')
+    implementation project(':android-styled-dialog')
 }
 
 dependencyVerification {

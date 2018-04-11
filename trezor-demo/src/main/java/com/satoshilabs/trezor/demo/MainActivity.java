@@ -9,6 +9,7 @@ import android.widget.Button;
 import com.satoshilabs.trezor.intents.ui.activity.TrezorActivity;
 import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyRequest;
 import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult;
+import com.satoshilabs.trezor.lib.protobuf.TrezorMessage;
 
 import timber.log.Timber;
 
@@ -26,9 +27,13 @@ public class MainActivity extends AppCompatActivity {
         exportPublicKeyBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int[] path = new int[] {44, 0, 0};
+                TrezorMessage.GetPublicKey message = TrezorMessage.GetPublicKey.newBuilder()
+                    .addAddressN(44)
+                    .addAddressN(0)
+                    .addAddressN(0)
+                    .build();
                 Intent intent = TrezorActivity.createIntent(MainActivity.this,
-                    new GetPublicKeyRequest(path));
+                    new GetPublicKeyRequest(message));
                 startActivityForResult(intent, REQUEST_GET_PUBLIC_KEY);
             }
         });
@@ -41,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     GetPublicKeyResult result = (GetPublicKeyResult) TrezorActivity.getResult(data);
                     new AlertDialog.Builder(this)
-                        .setMessage(result.getPublicKey().getXpub())
+                        .setMessage(result.getMessage().getXpub())
                         .show();
                 }
                 break;
