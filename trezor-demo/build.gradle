@@ -31,15 +31,16 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(":trezor-lib")
-    compile project(':trezor-intents')
+    implementation "com.android.support:appcompat-v7:$support_version"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation "android.arch.lifecycle:extensions:$architecture_components_version"
+    implementation 'com.jakewharton.timber:timber:4.5.1'
 
-    compile "com.android.support:appcompat-v7:$support_version"
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile "android.arch.lifecycle:extensions:$architecture_components_version"
-    testCompile 'junit:junit:4.12'
-    androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
+    implementation project(":trezor-lib")
+    implementation project(':trezor-intents')
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.1', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 

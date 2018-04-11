@@ -1,3 +1,0 @@
-Stable release, required update
-clean memory on start
-fix storage import from older versions

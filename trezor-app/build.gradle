@@ -1,23 +1,26 @@
 apply plugin: 'com.android.application'
-apply plugin: 'witness'
+//apply plugin: 'witness'
 
 android {
     compileSdkVersion project.ext.sdk
-    buildToolsVersion project.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "io.trezor.app"
         minSdkVersion project.ext.minsdk
         targetSdkVersion project.ext.sdk
-        versionCode 11
-        versionName "1.0.7"
+        versionCode 15
+        versionName "2.0.1"
         vectorDrawables.useSupportLibrary true
     }
 
-    signingConfigs {
-        release {
-            storeFile file("trezor-app-keystore.jks")
-            keyAlias "trezor-app"
+    if (project.hasProperty("RELEASE_STORE_FILE")) {
+        signingConfigs {
+            release {
+                storeFile file(RELEASE_STORE_FILE)
+                keyAlias RELEASE_KEY_ALIAS
+                storePassword RELEASE_STORE_PASSWORD
+                keyPassword RELEASE_KEY_PASSWORD
+            }
         }
     }
 
@@ -25,8 +28,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
             zipAlignEnabled true
+            if (project.hasProperty("RELEASE_STORE_FILE")) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -37,35 +42,37 @@ android {
 }
 
 dependencies {
-    compile "org.ccil.cowan.tagsoup:tagsoup:1.2.1"
+    implementation "org.ccil.cowan.tagsoup:tagsoup:1.2.1"
 
-    compile "com.android.support:support-v4:${project.ext.support_version}"
-    compile "com.android.support:appcompat-v7:${project.ext.support_version}"
-    compile "com.android.support:design:${project.ext.support_version}"
+    implementation "com.android.support:support-v4:${project.ext.support_version}"
+    implementation "com.android.support:appcompat-v7:${project.ext.support_version}"
+    implementation "com.android.support:design:${project.ext.support_version}"
+    implementation 'com.google.protobuf:protobuf-java:3.3.0'
+    implementation 'com.jakewharton.timber:timber:4.5.1'
 
+    implementation project(':android-styled-dialog')
     implementation project(':trezor-lib')
     implementation project(':cgcmn-liban')
-    implementation project(':android-styled-dialog')
 }
 
-dependencyVerification {
-    verify = [
-            'org.ccil.cowan.tagsoup:tagsoup:ac97f7b4b1d8e9337edfa0e34044f8d0efe7223f6ad8f3a85d54cc1018ea2e04',
-            'com.android.support:design:0e7c694bd5385e82d193e33b7289f769ce6ff05e277443daf5bffc3d852ef448',
-            'com.android.support:support-v4:afd802f1926475f40c5b6b42855c9a626a854298908dafdb455deb6dab2640f2',
-            'com.android.support:appcompat-v7:1402c29a49db30346c21a7d40634461765b3ab826f5dd95bc4dcc76787b21851',
-            'com.android.support:support-media-compat:bc1c0252c1d071a1676fd280a792cf0717833fb3afd0ef73070ddc51ef921ad7',
-            'com.android.support:support-fragment:05a859783ae4a285c6d5c9865e1242b86f5bfb69a30455ca6c8495f24c09d9ed',
-            'com.android.support:support-core-utils:b33c5a5d67b8bfa6c8829875661779279157bf23e6042179820eaf1745034a72',
-            'com.android.support:animated-vector-drawable:365050110411c86c7eec86101b49ab53557ffe6667f60b19055f1d35c38a577b',
-            'com.android.support:recyclerview-v7:99ae2863287df800f239617d09cafc58b95f7a5365db32e3761394fa01ab12c9',
-            'com.android.support:support-core-ui:91614f829f8a6f1fc2d28efc58ea2735212225ab02cdf768b3dd9af72371d5f0',
-            'com.android.support:support-vector-drawable:67154ea191f735496502214bc6da6195738829a8e9d59e8042a1e030a2c7f19c',
-            'com.android.support:transition:8a46d152391bd1598d1778ae889b3aeaff77a17d0caaa29446df6e26a28c4e4b',
-            'com.android.support:support-compat:70dfd92561421e5ae113dfc4045fc94c90caca9912839b3d08c793aa391aedcc',
-            'com.android.support:support-annotations:240912b779fe7413bdd97c94ac2a92d1fb29bd53c4d50c6982e5942b01278ac0',
-            'android.arch.lifecycle:runtime:e4e34e5d02bd102e8d39ddbc29f9ead8a15a61e367993d02238196ac48509ad8',
-            'android.arch.lifecycle:common:86bf301a20ad0cd0a391e22a52e6fbf90575c096ff83233fa9fd0d52b3219121',
-            'android.arch.core:common:5192934cd73df32e2c15722ed7fc488dde90baaec9ae030010dd1a80fb4e74e1',
-    ]
-}
+//dependencyVerification {
+//    verify = [
+//        'org.ccil.cowan.tagsoup:tagsoup:ac97f7b4b1d8e9337edfa0e34044f8d0efe7223f6ad8f3a85d54cc1018ea2e04',
+//        'com.android.support:support-v4:07d389154bcf73b47e514964df1578136b26cba78257b8a577a3ccb54beff0ae',
+//        'com.android.support:appcompat-v7:ac1ebbc46589195dda3e0b1becfe410bafd75bdf3edd1cd9acf04850f3895830',
+//        'com.android.support:design:a3e83064fe99d0a4369f9b46d8bfbe77d0c3022fffdee4be3ac3857b87cc89e3',
+//        'com.android.support:support-compat:e02d781268dc60aab6638d8dc20156ea11ca20b962d294b85e6f1e8418cabfa7',
+//        'com.android.support:support-media-compat:cbed07d07e0e84fdb4b75712f5fd946229a8af155933c9a92e41db64d00791e0',
+//        'com.android.support:support-core-utils:32fac02eb2c20a77fa3e3bc3ede62392a19613f72b8f8e10f5dfa84bb4c89ea1',
+//        'com.android.support:support-core-ui:6182278a6653e6c111c888963626cbb16f2d0022571cb239760475119e0b92a8',
+//        'com.android.support:support-fragment:541d6393c1e024453aca2a14f31bea0c7270ff4e2a02783f3528aa426367444d',
+//        'com.android.support:support-annotations:aedf76962584adfaed2bd3fcaa22406461c4310237fc27e301128edaa2dba2fa',
+//        'com.android.support:support-vector-drawable:13728f337f36d1c02d52198a6c20724edb447a0875454d829f95cb9eb4aa293b',
+//        'com.android.support:animated-vector-drawable:4bc46edf1946b32d518b41416d1734e915e0cbb28021de3b340527419b070691',
+//        'com.android.support:recyclerview-v7:375974a8724e359d97d77fa8522c614f813a3ac4583c1807f154a3f9a054b0a1',
+//        'com.android.support:transition:36c688825a8c0e6e879e18886de83dc90673322822d5b606ee302f70fb558e16',
+//        'com.google.protobuf:protobuf-java:f3411ade77523d5f0d013d4f25c36879e66f0c5e1e4310f7096d54d0d2553554',
+//        'com.squareup.okhttp3:okhttp:19e1db51787716ff0046fa19e408fb34ed32a6274baa0c07475bf724b4eb6800',
+//        'com.squareup.okio:okio:734269c3ebc5090e3b23566db558f421f0b4027277c79ad5d176b8ec168bb850',
+//    ]
+//}
