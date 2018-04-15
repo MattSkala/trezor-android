@@ -9,10 +9,7 @@ import android.os.Looper
 import android.util.Log
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.toHex
-import com.satoshilabs.trezor.intents.ui.data.GetAddressResult
-import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult
-import com.satoshilabs.trezor.intents.ui.data.InitializeResult
-import com.satoshilabs.trezor.intents.ui.data.TrezorResult
+import com.satoshilabs.trezor.intents.ui.data.*
 import com.satoshilabs.trezor.lib.TrezorException
 import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
@@ -170,6 +167,9 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
             }
             is TrezorMessage.Address -> {
                 result.value = GetAddressResult(message)
+            }
+            is TrezorMessage.CipheredKeyValue -> {
+                result.value = CipherKeyValueResult(message)
             }
         }
     }

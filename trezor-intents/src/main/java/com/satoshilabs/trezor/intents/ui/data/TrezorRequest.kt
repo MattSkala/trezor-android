@@ -12,15 +12,22 @@ abstract class TrezorRequest(open val message: Message) : Parcelable
 class InitializeRequest : TrezorRequest(TrezorMessage.Initialize.getDefaultInstance()), Parcelable
 
 @Parcelize
-class GetPublicKeyRequest(override val message: TrezorMessage.GetPublicKey) : TrezorRequest(message), Parcelable
+class GetPublicKeyRequest(override val message: TrezorMessage.GetPublicKey) :
+        TrezorRequest(message), Parcelable
 
 @Parcelize
-class GetAddressRequest(override val message: TrezorMessage.GetAddress) : TrezorRequest(message), Parcelable
+class GetAddressRequest(override val message: TrezorMessage.GetAddress) :
+        TrezorRequest(message), Parcelable
 
 @Parcelize
-class CheckAddressRequest(override val message: TrezorMessage.GetAddress, val address: String) : TrezorRequest(message), Parcelable
+class CheckAddressRequest(override val message: TrezorMessage.GetAddress, val address: String) :
+        TrezorRequest(message), Parcelable
 
 @Parcelize
 class SignTxRequest(override val message: TrezorType.TransactionType,
                     val inputTxs: Map<String, TrezorType.TransactionType>) :
+        TrezorRequest(message), Parcelable
+
+@Parcelize
+class CipherKeyValueRequest(override val message: TrezorMessage.CipherKeyValue) :
         TrezorRequest(message), Parcelable
