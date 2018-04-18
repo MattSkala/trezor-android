@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
+import com.google.protobuf.GeneratedMessageV3
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.toHex
 import com.satoshilabs.trezor.intents.ui.data.*
@@ -171,6 +172,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
             is TrezorMessage.CipheredKeyValue -> {
                 result.value = CipherKeyValueResult(message)
             }
+            else -> result.value = TrezorResult(message)
         }
     }
 

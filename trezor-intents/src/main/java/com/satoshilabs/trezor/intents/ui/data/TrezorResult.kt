@@ -1,19 +1,17 @@
 package com.satoshilabs.trezor.intents.ui.data
 
 import android.os.Parcelable
+import com.google.protobuf.Message
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import kotlinx.android.parcel.Parcelize
+import java.io.Serializable
 
-abstract class TrezorResult : Parcelable
+open class TrezorResult(open val message: Message) : Serializable
 
-@Parcelize
-class InitializeResult(val message: TrezorMessage.Features) : TrezorResult(), Parcelable
+class InitializeResult(override val message: TrezorMessage.Features) : TrezorResult(message)
 
-@Parcelize
-class GetPublicKeyResult(val message: TrezorMessage.PublicKey) : TrezorResult(), Parcelable
+class GetPublicKeyResult(override val message: TrezorMessage.PublicKey) : TrezorResult(message)
 
-@Parcelize
-class GetAddressResult(val message: TrezorMessage.Address) : TrezorResult(), Parcelable
+class GetAddressResult(override val message: TrezorMessage.Address) : TrezorResult(message)
 
-@Parcelize
-class CipherKeyValueResult(val message: TrezorMessage.CipheredKeyValue) : TrezorResult(), Parcelable
+class CipherKeyValueResult(override val message: TrezorMessage.CipheredKeyValue) : TrezorResult(message)

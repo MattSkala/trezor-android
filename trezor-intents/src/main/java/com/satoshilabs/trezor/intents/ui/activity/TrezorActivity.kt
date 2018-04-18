@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.R
 import com.satoshilabs.trezor.intents.ui.data.CheckAddressRequest
 import com.satoshilabs.trezor.intents.ui.data.SignTxRequest
@@ -41,7 +43,23 @@ class TrezorActivity : AppCompatActivity() {
 
         @JvmStatic
         fun getResult(data: Intent?): TrezorResult? {
-            return data?.getParcelableExtra(EXTRA_RESULT)
+            return data?.getSerializableExtra(EXTRA_RESULT) as TrezorResult?
+        }
+
+        @JvmStatic
+        fun getMessage(data: Intent?): Message? {
+            val result = data?.getSerializableExtra(EXTRA_RESULT) as TrezorResult?
+            return result?.message
+        }
+
+        @JvmStatic
+        fun getSignedTx(data: Intent?): String? {
+            return data?.getStringExtra(EXTRA_SIGNED_TX)
+        }
+
+        @JvmStatic
+        fun getFailure(data: Intent?): TrezorMessage.Failure? {
+            return data?.getSerializableExtra(EXTRA_FAILURE) as TrezorMessage.Failure?
         }
     }
 
@@ -156,7 +174,7 @@ class TrezorActivity : AppCompatActivity() {
     //
 
     private fun handleIntentRequest() {
-        val request = intent.getParcelableExtra(EXTRA_REQUEST) as TrezorRequest
+        val request = intent.getSerializableExtra(EXTRA_REQUEST) as TrezorRequest
         if (request is SignTxRequest) {
             viewModel.signTx(request.message, request.inputTxs)
         } else {
@@ -197,7 +215,7 @@ class TrezorActivity : AppCompatActivity() {
     private fun showButtonRequestDialog(message: TrezorMessage.ButtonRequest?) {
         dialog?.dismiss()
 
-        val request = intent.getParcelableExtra(EXTRA_REQUEST) as TrezorRequest
+        val request = intent.getSerializableExtra(EXTRA_REQUEST) as TrezorRequest
 
         if (request is CheckAddressRequest) {
             dialog = AlertDialog.Builder(this)
