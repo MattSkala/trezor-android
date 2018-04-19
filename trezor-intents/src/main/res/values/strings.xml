@@ -24,6 +24,6 @@
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
 
-    <string name="button_request_message">Confirm action on your TREZOR</string>
+    <string name="button_request_message">Complete the action on your TREZOR device</string>
     <string name="button_request_address_message">Check address on TREZOR</string>
 </resources>

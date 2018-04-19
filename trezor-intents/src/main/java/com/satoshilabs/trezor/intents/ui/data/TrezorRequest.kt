@@ -1,27 +1,18 @@
 package com.satoshilabs.trezor.intents.ui.data
 
+import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import com.satoshilabs.trezor.lib.protobuf.TrezorType
 import java.io.Serializable
 
-open class TrezorRequest(open val message: Message) : Serializable
+abstract class TrezorRequest(val state: ByteString?) : Serializable
 
-class InitializeRequest(override val message: TrezorMessage.Initialize) :
-        TrezorRequest(message)
+class GenericRequest(val message: Message, state: ByteString? = null) : TrezorRequest(state)
 
-class GetPublicKeyRequest(override val message: TrezorMessage.GetPublicKey) :
-        TrezorRequest(message)
+class CheckAddressRequest(val message: TrezorMessage.GetAddress, val address: String,
+                          state: ByteString? = null) : TrezorRequest(state)
 
-class GetAddressRequest(override val message: TrezorMessage.GetAddress) :
-        TrezorRequest(message)
-
-class CheckAddressRequest(override val message: TrezorMessage.GetAddress, val address: String) :
-        TrezorRequest(message)
-
-class SignTxRequest(override val message: TrezorType.TransactionType,
-                    val inputTxs: Map<String, TrezorType.TransactionType>) :
-        TrezorRequest(message)
-
-class CipherKeyValueRequest(override val message: TrezorMessage.CipherKeyValue) :
-        TrezorRequest(message)
+class SignTxRequest(val tx: TrezorType.TransactionType,
+                    val referencedTxs: Map<String, TrezorType.TransactionType>,
+                    state: ByteString? = null) : TrezorRequest(state)

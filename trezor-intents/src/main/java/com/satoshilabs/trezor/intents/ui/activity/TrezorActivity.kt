@@ -9,26 +9,22 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.R
-import com.satoshilabs.trezor.intents.ui.data.CheckAddressRequest
-import com.satoshilabs.trezor.intents.ui.data.SignTxRequest
-import com.satoshilabs.trezor.intents.ui.data.TrezorRequest
-import com.satoshilabs.trezor.intents.ui.data.TrezorResult
+import com.satoshilabs.trezor.intents.ui.data.*
 import com.satoshilabs.trezor.intents.ui.viewmodel.TrezorViewModel
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
 import com.satoshilabs.trezor.lib.protobuf.TrezorType
 
 class TrezorActivity : AppCompatActivity() {
     companion object {
-        private const val TAG = "TrezorActivity"
-
         const val EXTRA_REQUEST = "request"
+
         const val EXTRA_RESULT = "result"
-        const val EXTRA_SIGNED_TX = "signed_tx"
         const val EXTRA_FAILURE = "failure"
 
         private const val REQUEST_ENTER_PIN = 1
@@ -42,19 +38,38 @@ class TrezorActivity : AppCompatActivity() {
         }
 
         @JvmStatic
+        fun createGenericIntent(context: Context, message: Message, state: ByteString? = null): Intent {
+            val intent = Intent(context, TrezorActivity::class.java)
+            val request = GenericRequest(message, state)
+            intent.putExtra(EXTRA_REQUEST, request)
+            return intent
+        }
+
+        @JvmStatic
+        fun createSignTxIntent(context: Context, tx: TrezorType.TransactionType,
+                               referencedTxs: Map<String, TrezorType.TransactionType>,
+                               state: ByteString? = null): Intent {
+            val intent = Intent(context, TrezorActivity::class.java)
+            val request = SignTxRequest(tx, referencedTxs, state)
+            intent.putExtra(EXTRA_REQUEST, request)
+            return intent
+        }
+
+        @JvmStatic
         fun getResult(data: Intent?): TrezorResult? {
             return data?.getSerializableExtra(EXTRA_RESULT) as TrezorResult?
         }
 
         @JvmStatic
         fun getMessage(data: Intent?): Message? {
-            val result = data?.getSerializableExtra(EXTRA_RESULT) as TrezorResult?
+            val result = getResult(data) as? GenericResult?
             return result?.message
         }
 
         @JvmStatic
         fun getSignedTx(data: Intent?): String? {
-            return data?.getStringExtra(EXTRA_SIGNED_TX)
+            val result = getResult(data) as? SignTxResult?
+            return result?.signedTx
         }
 
         @JvmStatic
@@ -100,13 +115,6 @@ class TrezorActivity : AppCompatActivity() {
         viewModel.result.observe(this, Observer {
             val data = Intent()
             data.putExtra(EXTRA_RESULT, it)
-            setResult(Activity.RESULT_OK, data)
-            finish()
-        })
-
-        viewModel.signedTx.observe(this, Observer {
-            val data = Intent()
-            data.putExtra(EXTRA_SIGNED_TX, it)
             setResult(Activity.RESULT_OK, data)
             finish()
         })
@@ -175,10 +183,13 @@ class TrezorActivity : AppCompatActivity() {
 
     private fun handleIntentRequest() {
         val request = intent.getSerializableExtra(EXTRA_REQUEST) as TrezorRequest
-        if (request is SignTxRequest) {
-            viewModel.signTx(request.message, request.inputTxs)
-        } else {
-            viewModel.sendMessage(request.message)
+
+        viewModel.requestedDeviceState = request.state
+
+        when (request) {
+            is GenericRequest -> viewModel.sendMessage(request.message)
+            is CheckAddressRequest -> viewModel.sendMessage(request.message)
+            is SignTxRequest -> viewModel.signTx(request.tx, request.referencedTxs)
         }
     }
 

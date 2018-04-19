@@ -7,10 +7,12 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
-import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.toHex
-import com.satoshilabs.trezor.intents.ui.data.*
+import com.satoshilabs.trezor.intents.ui.data.GenericResult
+import com.satoshilabs.trezor.intents.ui.data.SignTxResult
+import com.satoshilabs.trezor.intents.ui.data.TrezorResult
 import com.satoshilabs.trezor.lib.TrezorException
 import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
@@ -45,9 +47,11 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
     val state = MutableLiveData<State>()
     val result = MutableLiveData<TrezorResult>()
-    var signedTx = MutableLiveData<String>()
     var buttonRequest: TrezorMessage.ButtonRequest? = null
     var failure = MutableLiveData<TrezorMessage.Failure>()
+
+    var requestedDeviceState: ByteString? = null
+    var deviceState: ByteString? = null
 
     val trezorConnectionChangedReceiver = object : TrezorManager.TrezorConnectionChangedReceiver() {
         override fun onTrezorConnectionChanged(connected: Boolean) {
@@ -157,22 +161,10 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         Log.d(TAG, "handleResponse $message")
 
         when (message) {
-            is TrezorMessage.PublicKey -> {
-                result.value = GetPublicKeyResult(message)
-            }
             is TrezorMessage.Failure -> {
                 failure.value = message
             }
-            is TrezorMessage.Features -> {
-                result.value = InitializeResult(message)
-            }
-            is TrezorMessage.Address -> {
-                result.value = GetAddressResult(message)
-            }
-            is TrezorMessage.CipheredKeyValue -> {
-                result.value = CipherKeyValueResult(message)
-            }
-            else -> result.value = TrezorResult(message)
+            else -> result.value = GenericResult(message, deviceState)
         }
     }
 
@@ -216,7 +208,8 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 if (response.requestType == TrezorType.RequestType.TXFINISHED) {
                     // Transaction is signed
                     mainThreadHandler.post {
-                        signedTx.value = signedTxBytes.toByteArray().toHex()
+                        val signedTx = signedTxBytes.toByteArray().toHex()
+                        result.value = SignTxResult(signedTx, deviceState)
                     }
                     break
                 }
@@ -236,6 +229,8 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 handleCommonRequests(handlePassphraseRequest(message))
             is TrezorMessage.ButtonRequest ->
                 handleCommonRequests(handleButtonRequest(message))
+            is TrezorMessage.PassphraseStateRequest ->
+                handleCommonRequests(handlePassphraseStateRequest(message))
             else -> message
         }
     }
@@ -263,6 +258,13 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun handlePassphraseRequest(passphraseRequest: TrezorMessage.PassphraseRequest): Message {
+        if (passphraseRequest.onDevice) {
+            mainThreadHandler.post {
+                state.value = State.BUTTON_REQUEST
+            }
+            return trezorManager.sendMessage(TrezorMessage.PassphraseAck.getDefaultInstance())
+        }
+
         mainThreadHandler.post {
             state.value = State.PASSPHRASE_REQUEST
         }
@@ -292,6 +294,13 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
         val buttonAck = TrezorMessage.ButtonAck.newBuilder().build()
         return trezorManager.sendMessage(buttonAck)
+    }
+
+    private fun handlePassphraseStateRequest(stateRequest: TrezorMessage.PassphraseStateRequest): Message {
+        deviceState = stateRequest.state
+
+        val stateAck = TrezorMessage.PassphraseStateAck.getDefaultInstance()
+        return trezorManager.sendMessage(stateAck)
     }
 
     private fun handleTxRequest(unsignedTx: TrezorType.TransactionType,

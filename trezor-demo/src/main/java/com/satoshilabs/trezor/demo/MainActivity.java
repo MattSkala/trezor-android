@@ -7,8 +7,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import com.satoshilabs.trezor.intents.ui.activity.TrezorActivity;
-import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyRequest;
-import com.satoshilabs.trezor.intents.ui.data.GetPublicKeyResult;
+import com.satoshilabs.trezor.intents.ui.data.GenericRequest;
+import com.satoshilabs.trezor.intents.ui.data.GenericResult;
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage;
 
 import timber.log.Timber;
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
                     .addAddressN(0)
                     .build();
                 Intent intent = TrezorActivity.createIntent(MainActivity.this,
-                    new GetPublicKeyRequest(message));
+                    new GenericRequest(message));
                 startActivityForResult(intent, REQUEST_GET_PUBLIC_KEY);
             }
         });
