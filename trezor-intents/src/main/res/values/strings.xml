@@ -21,9 +21,15 @@
     <string name="enter_passphrase_title">Enter your passphrase</string>
     <string name="enter_passphrase_hint">Passphrase</string>
 
+    <!-- BUTTONS -->
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
 
+    <!-- REQUESTS -->
     <string name="button_request_message">Complete the action on your TREZOR device</string>
     <string name="button_request_address_message">Check address on TREZOR</string>
+
+    <!-- ERRORS -->
+    <string name="error_unexpected_message">Unexpected message</string>
+    <string name="error_wrong_passphrase">Wrong passphrase</string>
 </resources>

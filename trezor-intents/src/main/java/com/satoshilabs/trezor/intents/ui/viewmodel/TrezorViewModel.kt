@@ -10,9 +10,7 @@ import android.util.Log
 import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.toHex
-import com.satoshilabs.trezor.intents.ui.data.GenericResult
-import com.satoshilabs.trezor.intents.ui.data.SignTxResult
-import com.satoshilabs.trezor.intents.ui.data.TrezorResult
+import com.satoshilabs.trezor.intents.ui.data.*
 import com.satoshilabs.trezor.lib.TrezorException
 import com.satoshilabs.trezor.lib.TrezorManager
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage
@@ -30,7 +28,6 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     enum class State {
         DISCONNECTED,
         CONNECTED,
-        FAILURE,
         PIN_MATRIX_REQUEST,
         PASSPHRASE_REQUEST,
         BUTTON_REQUEST
@@ -47,8 +44,8 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
     val state = MutableLiveData<State>()
     val result = MutableLiveData<TrezorResult>()
+    var failure = MutableLiveData<FailureResult>()
     var buttonRequest: TrezorMessage.ButtonRequest? = null
-    var failure = MutableLiveData<TrezorMessage.Failure>()
 
     var requestedDeviceState: ByteString? = null
     var deviceState: ByteString? = null
@@ -98,6 +95,12 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         backgroundHandler.post {
             Log.d(TAG, "sendMessage $message")
             try {
+                if (requestedDeviceState != null) {
+                    val init = TrezorMessage.Initialize.newBuilder()
+                            .setState(requestedDeviceState).build()
+                    trezorManager.sendMessage(init)
+                }
+
                 var response = trezorManager.sendMessage(message)
                 response = handleCommonRequests(response)
 
@@ -162,7 +165,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
 
         when (message) {
             is TrezorMessage.Failure -> {
-                failure.value = message
+                failure.value = FailureResult(ErrorType.TREZOR_FAILURE, message)
             }
             else -> result.value = GenericResult(message, deviceState)
         }
@@ -186,7 +189,8 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 if (response is TrezorMessage.Failure) {
                     Log.e(TAG, "Failure: " + response.code + ": " + response.message)
                     mainThreadHandler.post {
-                        failure.value = response as TrezorMessage.Failure
+                        failure.value = FailureResult(ErrorType.TREZOR_FAILURE,
+                                response as TrezorMessage.Failure)
                     }
                     return
                 }
@@ -194,7 +198,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
                 if (response !is TrezorMessage.TxRequest) {
                     Log.e(TAG, "Unexpected response: $response")
                     mainThreadHandler.post {
-                        state.value = State.FAILURE
+                        failure.value = FailureResult(ErrorType.UNEXPECTED_MESSAGE)
                     }
                     return
                 }
@@ -262,7 +266,12 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
             mainThreadHandler.post {
                 state.value = State.BUTTON_REQUEST
             }
-            return trezorManager.sendMessage(TrezorMessage.PassphraseAck.getDefaultInstance())
+            val passphraseAckBuilder = TrezorMessage.PassphraseAck.newBuilder()
+            if (requestedDeviceState != null) {
+                passphraseAckBuilder.state = requestedDeviceState
+            }
+            val passphraseAck = passphraseAckBuilder.build()
+            return trezorManager.sendMessage(passphraseAck)
         }
 
         mainThreadHandler.post {
@@ -276,9 +285,12 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         val passphraseAck = if (passphrase !== POISON) {
-            TrezorMessage.PassphraseAck.newBuilder()
+            val passphraseAckBuilder = TrezorMessage.PassphraseAck.newBuilder()
                     .setPassphrase(passphrase)
-                    .build()
+            if (requestedDeviceState != null) {
+                passphraseAckBuilder.state = requestedDeviceState
+            }
+            passphraseAckBuilder.build()
         } else {
             TrezorMessage.Cancel.getDefaultInstance()
         }
@@ -297,6 +309,17 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun handlePassphraseStateRequest(stateRequest: TrezorMessage.PassphraseStateRequest): Message {
+        if (requestedDeviceState != null) {
+            if (stateRequest.state != requestedDeviceState) {
+                val init = TrezorMessage.Initialize.newBuilder()
+                        .setState(requestedDeviceState).build()
+                mainThreadHandler.post {
+                    failure.value = FailureResult(ErrorType.WRONG_PASSPHRASE)
+                }
+                return trezorManager.sendMessage(init)
+            }
+        }
+
         deviceState = stateRequest.state
 
         val stateAck = TrezorMessage.PassphraseStateAck.getDefaultInstance()

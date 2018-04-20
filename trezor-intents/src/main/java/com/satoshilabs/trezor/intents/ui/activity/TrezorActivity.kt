@@ -9,9 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import com.satoshilabs.trezor.intents.R
@@ -25,7 +25,6 @@ class TrezorActivity : AppCompatActivity() {
         const val EXTRA_REQUEST = "request"
 
         const val EXTRA_RESULT = "result"
-        const val EXTRA_FAILURE = "failure"
 
         private const val REQUEST_ENTER_PIN = 1
         private const val REQUEST_ENTER_PASSPHRASE = 2
@@ -71,11 +70,6 @@ class TrezorActivity : AppCompatActivity() {
             val result = getResult(data) as? SignTxResult?
             return result?.signedTx
         }
-
-        @JvmStatic
-        fun getFailure(data: Intent?): TrezorMessage.Failure? {
-            return data?.getSerializableExtra(EXTRA_FAILURE) as TrezorMessage.Failure?
-        }
     }
 
     private lateinit var viewModel: TrezorViewModel
@@ -99,11 +93,6 @@ class TrezorActivity : AppCompatActivity() {
                     showLoadingDialog()
                     handleIntentRequest()
                 }
-                TrezorViewModel.State.FAILURE -> {
-                    viewModel.sendCancel()
-                    setResult(Activity.RESULT_CANCELED)
-                    finish()
-                }
                 TrezorViewModel.State.PIN_MATRIX_REQUEST -> startEnterPinActivity()
                 TrezorViewModel.State.PASSPHRASE_REQUEST -> startEnterPassphraseActivity()
                 TrezorViewModel.State.BUTTON_REQUEST -> {
@@ -113,17 +102,28 @@ class TrezorActivity : AppCompatActivity() {
         })
 
         viewModel.result.observe(this, Observer {
-            val data = Intent()
-            data.putExtra(EXTRA_RESULT, it)
-            setResult(Activity.RESULT_OK, data)
-            finish()
+            if (it != null) {
+                val data = Intent()
+                data.putExtra(EXTRA_RESULT, it)
+                setResult(Activity.RESULT_OK, data)
+                finish()
+            }
         })
 
         viewModel.failure.observe(this, Observer {
-            val data = Intent()
-            data.putExtra(EXTRA_FAILURE, it)
-            setResult(Activity.RESULT_CANCELED, data)
-            finish()
+            if (it != null) {
+                val errorMessage = when (it.errorType) {
+                    ErrorType.TREZOR_FAILURE -> it.message?.message
+                    ErrorType.UNEXPECTED_MESSAGE -> resources.getString(R.string.error_unexpected_message)
+                    ErrorType.WRONG_PASSPHRASE -> resources.getString(R.string.error_wrong_passphrase)
+                }
+                Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
+
+                val data = Intent()
+                data.putExtra(EXTRA_RESULT, it)
+                setResult(Activity.RESULT_CANCELED, data)
+                finish()
+            }
         })
     }
 
