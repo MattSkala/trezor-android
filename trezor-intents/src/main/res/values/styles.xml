@@ -46,7 +46,7 @@
         <item name="android:colorBackgroundCacheHint">@null</item>
     </style>
 
-    <style name="SDL.Title">
+    <style name="SDL.TitleBase">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@color/dialog_title_text</item>
@@ -57,7 +57,9 @@
         <item name="android:paddingBottom">@dimen/sdl__title_bottom_padding</item>
         <item name="android:drawablePadding">16dp</item>
         <item name="android:gravity">left|center_vertical</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="SDL.Title" parent="SDL.TitleBase">
     </style>
 
     <style name="SDL.Message">

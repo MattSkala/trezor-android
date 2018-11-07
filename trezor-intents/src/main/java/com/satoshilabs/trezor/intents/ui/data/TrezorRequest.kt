@@ -8,11 +8,19 @@ import java.io.Serializable
 
 abstract class TrezorRequest(val state: ByteString?) : Serializable
 
-class GenericRequest(val message: Message, state: ByteString? = null) : TrezorRequest(state)
+class GenericRequest @JvmOverloads constructor(
+        val message: Message,
+        state: ByteString? = null
+) : TrezorRequest(state)
 
-class CheckAddressRequest(val message: TrezorMessage.GetAddress, val address: String,
-                          state: ByteString? = null) : TrezorRequest(state)
+class CheckAddressRequest @JvmOverloads constructor(
+        val message: TrezorMessage.GetAddress,
+        val address: String,
+        state: ByteString? = null
+) : TrezorRequest(state)
 
-class SignTxRequest(val tx: TrezorType.TransactionType,
-                    val referencedTxs: Map<String, TrezorType.TransactionType>,
-                    state: ByteString? = null) : TrezorRequest(state)
+class SignTxRequest @JvmOverloads constructor(
+        val tx: TrezorType.TransactionType,
+        val referencedTxs: Map<String, TrezorType.TransactionType>,
+        state: ByteString? = null
+) : TrezorRequest(state)

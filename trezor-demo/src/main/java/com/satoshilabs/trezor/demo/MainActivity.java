@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import com.satoshilabs.trezor.intents.ui.activity.TrezorActivity;
 import com.satoshilabs.trezor.intents.ui.data.GenericRequest;
-import com.satoshilabs.trezor.intents.ui.data.GenericResult;
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessage;
 
 import timber.log.Timber;
