@@ -96,7 +96,7 @@ class TrezorActivity : AppCompatActivity() {
                 TrezorViewModel.State.PIN_MATRIX_REQUEST -> startEnterPinActivity()
                 TrezorViewModel.State.PASSPHRASE_REQUEST -> startEnterPassphraseActivity()
                 TrezorViewModel.State.BUTTON_REQUEST -> {
-                    showButtonRequestDialog(viewModel.buttonRequest)
+                    showButtonRequestDialog()
                 }
             }
         })
@@ -223,7 +223,7 @@ class TrezorActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
-    private fun showButtonRequestDialog(message: TrezorMessage.ButtonRequest?) {
+    private fun showButtonRequestDialog() {
         dialog?.dismiss()
 
         val request = intent.getSerializableExtra(EXTRA_REQUEST) as TrezorRequest

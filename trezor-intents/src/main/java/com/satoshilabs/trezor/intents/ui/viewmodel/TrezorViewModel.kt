@@ -228,7 +228,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     private fun handleCommonRequests(message: Message): Message {
         return when (message) {
             is TrezorMessage.PinMatrixRequest ->
-                handleCommonRequests(handlePinMatrixRequest(message))
+                handleCommonRequests(handlePinMatrixRequest())
             is TrezorMessage.PassphraseRequest ->
                 handleCommonRequests(handlePassphraseRequest(message))
             is TrezorMessage.ButtonRequest ->
@@ -239,7 +239,7 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private fun handlePinMatrixRequest(pinMatrixRequest: TrezorMessage.PinMatrixRequest): Message {
+    private fun handlePinMatrixRequest(): Message {
         mainThreadHandler.post {
             state.value = State.PIN_MATRIX_REQUEST
         }
