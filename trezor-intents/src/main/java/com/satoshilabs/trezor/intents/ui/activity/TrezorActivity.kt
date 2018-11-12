@@ -45,16 +45,6 @@ class TrezorActivity : AppCompatActivity() {
         }
 
         @JvmStatic
-        fun createSignTxIntent(context: Context, tx: TrezorType.TransactionType,
-                               referencedTxs: Map<String, TrezorType.TransactionType>,
-                               state: ByteString? = null): Intent {
-            val intent = Intent(context, TrezorActivity::class.java)
-            val request = SignTxRequest(tx, referencedTxs, state)
-            intent.putExtra(EXTRA_REQUEST, request)
-            return intent
-        }
-
-        @JvmStatic
         fun getResult(data: Intent?): TrezorResult? {
             return data?.getSerializableExtra(EXTRA_RESULT) as TrezorResult?
         }
@@ -189,7 +179,7 @@ class TrezorActivity : AppCompatActivity() {
         when (request) {
             is GenericRequest -> viewModel.sendMessage(request.message)
             is CheckAddressRequest -> viewModel.sendMessage(request.message)
-            is SignTxRequest -> viewModel.signTx(request.tx, request.referencedTxs)
+            is SignTxRequest -> viewModel.signTx(request.tx, request.referencedTxs, request.coinName)
         }
     }
 

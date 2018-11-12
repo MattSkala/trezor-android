@@ -22,5 +22,6 @@ class CheckAddressRequest @JvmOverloads constructor(
 class SignTxRequest @JvmOverloads constructor(
         val tx: TrezorType.TransactionType,
         val referencedTxs: Map<String, TrezorType.TransactionType>,
+        val coinName: String = "Bitcoin",
         state: ByteString? = null
 ) : TrezorRequest(state)

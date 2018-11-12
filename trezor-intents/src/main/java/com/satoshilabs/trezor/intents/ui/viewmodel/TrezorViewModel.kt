@@ -119,9 +119,10 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
      * @param tx A transaction to sign.
      * @param inputTxs Details of the previous transactions that are being spent in the new transaction.
      */
-    fun signTx(tx: TrezorType.TransactionType, inputTxs: Map<String, TrezorType.TransactionType>) {
+    fun signTx(tx: TrezorType.TransactionType, inputTxs: Map<String, TrezorType.TransactionType>,
+               coinName: String) {
         backgroundHandler.post {
-            signTxInternal(tx, inputTxs)
+            signTxInternal(tx, inputTxs, coinName)
         }
     }
 
@@ -172,11 +173,12 @@ class TrezorViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun signTxInternal(tx: TrezorType.TransactionType,
-                               inputTxs: Map<String, TrezorType.TransactionType>) {
+                               inputTxs: Map<String, TrezorType.TransactionType>, coinName: String) {
         try {
             val signTx = TrezorMessage.SignTx.newBuilder()
                     .setInputsCount(tx.inputsCount)
                     .setOutputsCount(tx.outputsCount)
+                    .setCoinName(coinName)
                     .build()
 
             var response = trezorManager.sendMessage(signTx)
